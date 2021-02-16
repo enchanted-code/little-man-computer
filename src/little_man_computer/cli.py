@@ -5,7 +5,6 @@ from .types import MemAddr, Instruction
 
 
 def run(instructions: List[Instruction], dats=List[MemAddr]):
-    # TODO load with DAT values
     LMC = LittleManComputer(instructions, dats)
 
     while True:

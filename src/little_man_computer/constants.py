@@ -14,3 +14,8 @@ MNEMONICS = {
 
     "HLT": "0"
 }
+
+
+class FileHeaders:
+    MNEMONIC = "mnemonic"
+    NUMBERED = "numbered"
