@@ -1,0 +1,39 @@
+//! Parser for the LMC.
+
+/// Valid name for a label
+labelName = @{ ASCII_ALPHA+ }
+/// A labeled instruction
+label     =  { (comment ~ NEWLINE*)* ~ labelName ~ ":" ~ comment? }
+
+/// A generic programmers comment
+comment = { ";" ~ (!NEWLINE ~ ANY)* }
+
+/// A memory location, using either physical or labeled
+memoryLocation = @{ ASCII_DIGIT+ | ASCII_ALPHA+ }
+
+/// Valid mnemonic instruction names
+instructionName = {
+    ^"ADD"
+    | ^"SUB"
+    | ^"STA"
+    | ^"LDA"
+    | ^"BRA"
+    | ^"BRZ"
+    | ^"BRP"
+    | ^"INP"
+    | ^"OUT"
+    | ^"HLT"
+    | ^"DAT"
+}
+/// A instruction
+instruction     = {
+    (comment ~ NEWLINE*)* ~ instructionName ~ memoryLocation? ~ comment?
+}
+
+/// Single processable statement
+stmt = { (label ~ NEWLINE*)? ~ instruction }
+
+/// A complete program
+program = _{ SOI ~ NEWLINE* ~ ((stmt | comment) ~ NEWLINE+)* ~ (stmt | comment)? ~ EOI }
+
+WHITESPACE = _{ " " | "\t" }
