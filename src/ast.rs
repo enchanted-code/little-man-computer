@@ -41,7 +41,7 @@ pub enum Statement<'a> {
         label: Label<'a>,
         instruction: Instruction<'a>,
     },
-    Unlabled {
+    UnLabeled {
         instruction: Instruction<'a>,
     },
 }
@@ -145,7 +145,7 @@ pub fn parsed_to_ast<'a>(parsed: &mut Pairs<'a, Rule>) -> Vec<Statement<'a>> {
                         label,
                         instruction: instruction.unwrap(),
                     },
-                    None => Statement::Unlabled {
+                    None => Statement::UnLabeled {
                         instruction: instruction.unwrap(),
                     },
                 })
