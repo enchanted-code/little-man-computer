@@ -1,5 +1,5 @@
 pub mod ast;
-pub mod parser;
+pub mod grammar;
 
 fn main() {
     println!("Hello World!");

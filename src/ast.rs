@@ -1,6 +1,6 @@
 use pest::iterators::Pairs;
 
-use crate::parser::Rule;
+use crate::grammar::Rule;
 
 #[derive(Debug)]
 pub enum MemoryLocation<'a> {

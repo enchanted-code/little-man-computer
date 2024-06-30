@@ -2,7 +2,7 @@ use pest::{error::Error as PestError, iterators::Pairs, Parser};
 use pest_derive::Parser;
 
 #[derive(Parser)]
-#[grammar = "lmc.pest"]
+#[grammar = "grammar.pest"]
 pub struct LMCParser;
 
 #[allow(clippy::result_large_err)]
