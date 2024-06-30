@@ -1,8 +1,14 @@
+use pest::{error::Error as PestError, iterators::Pairs, Parser};
 use pest_derive::Parser;
 
 #[derive(Parser)]
 #[grammar = "lmc.pest"]
 pub struct LMCParser;
+
+#[allow(clippy::result_large_err)]
+pub fn pass_program(input: &str) -> Result<Pairs<Rule>, PestError<Rule>> {
+    LMCParser::parse(Rule::program, input)
+}
 
 #[cfg(test)]
 mod tests {
