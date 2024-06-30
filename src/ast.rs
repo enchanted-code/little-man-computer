@@ -26,13 +26,13 @@ pub enum InstructionType<'a> {
 #[derive(Debug)]
 pub struct Label<'a> {
     pub label: &'a str,
-    pub comments: Vec<&'a str>,
+    pub comments: Box<[&'a str]>,
 }
 
 #[derive(Debug)]
 pub struct Instruction<'a> {
     pub instruction: InstructionType<'a>,
-    pub comments: Vec<&'a str>,
+    pub comments: Box<[&'a str]>,
 }
 
 #[derive(Debug)]
@@ -64,7 +64,7 @@ pub fn parsed_to_ast<'a>(parsed: &mut Pairs<'a, Rule>) -> Vec<Statement<'a>> {
                                     Rule::labelName => {
                                         label = Some(Label {
                                             label: token.as_span().as_str(),
-                                            comments: vec![],
+                                            comments: vec![].into_boxed_slice(),
                                         })
                                     }
                                     Rule::comment => {
@@ -80,7 +80,7 @@ pub fn parsed_to_ast<'a>(parsed: &mut Pairs<'a, Rule>) -> Vec<Statement<'a>> {
                                 }
                             }
                             if let Some(label) = label.as_mut() {
-                                label.comments = label_comments;
+                                label.comments = label_comments.into_boxed_slice();
                             }
                         }
                         Rule::instruction => {
@@ -134,7 +134,7 @@ pub fn parsed_to_ast<'a>(parsed: &mut Pairs<'a, Rule>) -> Vec<Statement<'a>> {
                                         instruction_type
                                     ),
                                 },
-                                comments: instruction_comments,
+                                comments: instruction_comments.into_boxed_slice(),
                             });
                         }
                         _ => panic!("invalid parsed token rule"),
