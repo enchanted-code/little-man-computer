@@ -20,7 +20,7 @@ pub enum InstructionType<'a> {
     Input,
     Output,
     Halt,
-    Data(u8),
+    Data(u16),
 }
 
 #[derive(Debug)]
@@ -127,7 +127,7 @@ pub fn parsed_to_ast<'a>(parsed: &mut Pairs<'a, Rule>) -> Vec<Statement<'a>> {
                                     "OUT" => InstructionType::Output,
                                     "HLT" => InstructionType::Halt,
                                     "DAT" => InstructionType::Data(
-                                        instruction_memory.parse::<u8>().unwrap(),
+                                        instruction_memory.parse::<u16>().unwrap(),
                                     ),
                                     _ => panic!(
                                         "unknown instruction type found: '{}'",
