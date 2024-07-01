@@ -131,6 +131,7 @@ pub fn parsed_to_ast<'a>(parsed: &mut Pairs<'a, Rule>) -> Vec<Statement<'a>> {
                                     "STA" => InstructionType::Store(memory_location),
                                     "LDA" => InstructionType::Load(memory_location),
                                     "BRA" => InstructionType::BranchAlways(memory_location),
+                                    "BRZ" => InstructionType::BranchIfZero(memory_location),
                                     "BRP" => InstructionType::BranchIfPositive(memory_location),
                                     "INP" => InstructionType::Input,
                                     "OUT" => InstructionType::Output,

@@ -99,7 +99,7 @@ pub fn assemble_from_ast<'a>(
             }
             ast::InstructionType::Input => ASSEMBLED_OPCODE_INP,
             ast::InstructionType::Output => ASSEMBLED_OPCODE_OUT,
-            ast::InstructionType::Halt => ASSEMBLED_OPCODE_BRZ,
+            ast::InstructionType::Halt => ASSEMBLED_OPCODE_HLT,
             ast::InstructionType::Data(v) => *v,
         }
     }
