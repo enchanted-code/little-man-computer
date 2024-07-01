@@ -2,16 +2,35 @@ use std::collections::HashMap;
 
 use crate::ast::{self, Statement};
 
-pub const OPCODE_ADD: usize = 100;
-pub const OPCODE_SUB: usize = 200;
-pub const OPCODE_STA: usize = 300;
-pub const OPCODE_LDA: usize = 500;
-pub const OPCODE_BRA: usize = 600;
-pub const OPCODE_BRZ: usize = 700;
-pub const OPCODE_BRP: usize = 800;
-pub const OPCODE_INP: usize = 901;
-pub const OPCODE_OUT: usize = 902;
-pub const OPCODE_HLT: usize = 000;
+pub const OPCODE_ADD: usize = 1;
+pub const OPCODE_SUB: usize = 2;
+pub const OPCODE_STA: usize = 3;
+pub const OPCODE_LDA: usize = 5;
+pub const OPCODE_BRA: usize = 6;
+pub const OPCODE_BRZ: usize = 7;
+pub const OPCODE_BRP: usize = 8;
+pub const OPCODE_INP: usize = 9;
+pub const OPCODE_OUT: usize = 9;
+pub const OPCODE_HLT: usize = 0;
+
+pub const ASSEMBLED_OPCODE_ADD: usize = OPCODE_ADD * 100;
+pub const ASSEMBLED_OPCODE_SUB: usize = OPCODE_SUB * 100;
+pub const ASSEMBLED_OPCODE_STA: usize = OPCODE_STA * 100;
+pub const ASSEMBLED_OPCODE_LDA: usize = OPCODE_LDA * 100;
+pub const ASSEMBLED_OPCODE_BRA: usize = OPCODE_BRA * 100;
+pub const ASSEMBLED_OPCODE_BRZ: usize = OPCODE_BRZ * 100;
+pub const ASSEMBLED_OPCODE_BRP: usize = OPCODE_BRP * 100;
+pub const ASSEMBLED_OPCODE_INP: usize = OPCODE_OUT * 100 + 1;
+pub const ASSEMBLED_OPCODE_OUT: usize = OPCODE_OUT * 100 + 2;
+pub const ASSEMBLED_OPCODE_HLT: usize = OPCODE_HLT * 100;
+
+pub fn extract_opcode_from_assembled(assembled: usize) -> usize {
+    assembled / 100
+}
+
+pub fn extract_value_from_assembled(assembled: usize) -> usize {
+    assembled % 100
+}
 
 #[derive(Debug)]
 pub enum AssemblerError<'a> {
@@ -58,29 +77,29 @@ pub fn assemble_from_ast<'a>(
         let instruction: &ast::Instruction = stmt.into();
         *addr = match &instruction.instruction {
             ast::InstructionType::Add(mem_location) => {
-                OPCODE_ADD + memory_location_to_addr(&labels, mem_location)? as usize
+                ASSEMBLED_OPCODE_ADD + memory_location_to_addr(&labels, mem_location)? as usize
             }
             ast::InstructionType::Subtract(mem_location) => {
-                OPCODE_SUB + memory_location_to_addr(&labels, mem_location)? as usize
+                ASSEMBLED_OPCODE_SUB + memory_location_to_addr(&labels, mem_location)? as usize
             }
             ast::InstructionType::Store(mem_location) => {
-                OPCODE_STA + memory_location_to_addr(&labels, mem_location)? as usize
+                ASSEMBLED_OPCODE_STA + memory_location_to_addr(&labels, mem_location)? as usize
             }
             ast::InstructionType::Load(mem_location) => {
-                OPCODE_LDA + memory_location_to_addr(&labels, mem_location)? as usize
+                ASSEMBLED_OPCODE_LDA + memory_location_to_addr(&labels, mem_location)? as usize
             }
             ast::InstructionType::BranchAlways(mem_location) => {
-                OPCODE_BRA + memory_location_to_addr(&labels, mem_location)? as usize
+                ASSEMBLED_OPCODE_BRA + memory_location_to_addr(&labels, mem_location)? as usize
             }
             ast::InstructionType::BranchIfZero(mem_location) => {
-                OPCODE_BRZ + memory_location_to_addr(&labels, mem_location)? as usize
+                ASSEMBLED_OPCODE_BRZ + memory_location_to_addr(&labels, mem_location)? as usize
             }
             ast::InstructionType::BranchIfPositive(mem_location) => {
-                OPCODE_BRP + memory_location_to_addr(&labels, mem_location)? as usize
+                ASSEMBLED_OPCODE_BRP + memory_location_to_addr(&labels, mem_location)? as usize
             }
-            ast::InstructionType::Input => OPCODE_INP,
-            ast::InstructionType::Output => OPCODE_OUT,
-            ast::InstructionType::Halt => OPCODE_BRZ,
+            ast::InstructionType::Input => ASSEMBLED_OPCODE_INP,
+            ast::InstructionType::Output => ASSEMBLED_OPCODE_OUT,
+            ast::InstructionType::Halt => ASSEMBLED_OPCODE_BRZ,
             ast::InstructionType::Data(v) => *v,
         }
     }
