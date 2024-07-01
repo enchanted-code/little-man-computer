@@ -2,26 +2,22 @@ use std::collections::HashMap;
 
 use crate::ast::{self, Statement};
 
+pub const OPCODE_ADD: usize = 100;
+pub const OPCODE_SUB: usize = 200;
+pub const OPCODE_STA: usize = 300;
+pub const OPCODE_LDA: usize = 500;
+pub const OPCODE_BRA: usize = 600;
+pub const OPCODE_BRZ: usize = 700;
+pub const OPCODE_BRP: usize = 800;
+pub const OPCODE_INP: usize = 901;
+pub const OPCODE_OUT: usize = 902;
+pub const OPCODE_HLT: usize = 000;
+
 #[derive(Debug)]
 pub enum AssemblerError<'a> {
     TooManyInstructions { expected: usize, actual: usize },
     LabelAlreadyDefined { name: &'a str, index: usize },
     LabelNotDefined(&'a str),
-}
-
-#[derive(Debug, Clone, Copy)]
-pub enum AssembledInstruction {
-    Add(u8),
-    Subtract(u8),
-    Store(u8),
-    Load(u8),
-    BranchAlways(u8),
-    BranchIfZero(u8),
-    BranchIfPositive(u8),
-    Input,
-    Output,
-    Halt,
-    Data(isize),
 }
 
 fn memory_location_to_addr<'a>(
@@ -39,7 +35,7 @@ fn memory_location_to_addr<'a>(
 
 pub fn assemble_from_ast<'a>(
     ast: &'a [ast::Statement<'a>],
-    memory: &mut [AssembledInstruction; 255],
+    memory: &mut [usize; 100],
 ) -> Result<(), AssemblerError<'a>> {
     if ast.len() > memory.len() {
         return Err(AssemblerError::TooManyInstructions {
@@ -62,33 +58,30 @@ pub fn assemble_from_ast<'a>(
         let instruction: &ast::Instruction = stmt.into();
         *addr = match &instruction.instruction {
             ast::InstructionType::Add(mem_location) => {
-                AssembledInstruction::Add(memory_location_to_addr(&labels, mem_location)?)
+                OPCODE_ADD + memory_location_to_addr(&labels, mem_location)? as usize
             }
             ast::InstructionType::Subtract(mem_location) => {
-                AssembledInstruction::Subtract(memory_location_to_addr(&labels, mem_location)?)
+                OPCODE_SUB + memory_location_to_addr(&labels, mem_location)? as usize
             }
             ast::InstructionType::Store(mem_location) => {
-                AssembledInstruction::Store(memory_location_to_addr(&labels, mem_location)?)
+                OPCODE_STA + memory_location_to_addr(&labels, mem_location)? as usize
             }
             ast::InstructionType::Load(mem_location) => {
-                AssembledInstruction::Load(memory_location_to_addr(&labels, mem_location)?)
+                OPCODE_LDA + memory_location_to_addr(&labels, mem_location)? as usize
             }
             ast::InstructionType::BranchAlways(mem_location) => {
-                AssembledInstruction::BranchAlways(memory_location_to_addr(&labels, mem_location)?)
+                OPCODE_BRA + memory_location_to_addr(&labels, mem_location)? as usize
             }
             ast::InstructionType::BranchIfZero(mem_location) => {
-                AssembledInstruction::BranchIfZero(memory_location_to_addr(&labels, mem_location)?)
+                OPCODE_BRZ + memory_location_to_addr(&labels, mem_location)? as usize
             }
             ast::InstructionType::BranchIfPositive(mem_location) => {
-                AssembledInstruction::BranchIfPositive(memory_location_to_addr(
-                    &labels,
-                    mem_location,
-                )?)
+                OPCODE_BRP + memory_location_to_addr(&labels, mem_location)? as usize
             }
-            ast::InstructionType::Input => AssembledInstruction::Input,
-            ast::InstructionType::Output => AssembledInstruction::Output,
-            ast::InstructionType::Halt => AssembledInstruction::Halt,
-            ast::InstructionType::Data(v) => AssembledInstruction::Data(*v),
+            ast::InstructionType::Input => OPCODE_INP,
+            ast::InstructionType::Output => OPCODE_OUT,
+            ast::InstructionType::Halt => OPCODE_BRZ,
+            ast::InstructionType::Data(v) => *v,
         }
     }
 
