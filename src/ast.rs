@@ -46,6 +46,15 @@ pub enum Statement<'a> {
     },
 }
 
+impl<'a, 'b> From<&'b Statement<'a>> for &'b Instruction<'a> {
+    fn from(value: &'b Statement<'a>) -> &'b Instruction<'a> {
+        match value {
+            Statement::Labeled { instruction, .. } => &instruction,
+            Statement::UnLabeled { instruction } => &instruction,
+        }
+    }
+}
+
 pub fn parsed_to_ast<'a>(parsed: &mut Pairs<'a, Rule>) -> Vec<Statement<'a>> {
     let mut ast = vec![];
     for pair in parsed {
@@ -127,7 +136,7 @@ pub fn parsed_to_ast<'a>(parsed: &mut Pairs<'a, Rule>) -> Vec<Statement<'a>> {
                                     "OUT" => InstructionType::Output,
                                     "HLT" => InstructionType::Halt,
                                     "DAT" => InstructionType::Data(
-                                        instruction_memory.parse::<u16>().unwrap(),
+                                        instruction_memory.parse::<u16>().unwrap_or(0),
                                     ),
                                     _ => panic!(
                                         "unknown instruction type found: '{}'",
