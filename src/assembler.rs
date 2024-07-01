@@ -21,7 +21,7 @@ pub enum AssembledInstruction {
     Input,
     Output,
     Halt,
-    Data(u16),
+    Data(isize),
 }
 
 fn memory_location_to_addr<'a>(
