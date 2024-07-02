@@ -1,0 +1,11 @@
+start:
+    INP
+    STA userInput
+    INP
+    ADD userInput
+    ; if total is zero, restart program
+    BRZ start
+    OUT
+end:
+    HLT
+userInput: DAT
