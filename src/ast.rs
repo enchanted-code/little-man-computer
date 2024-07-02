@@ -2,13 +2,25 @@ use pest::iterators::Pairs;
 
 use crate::grammar::Rule;
 
-#[derive(Debug)]
+pub const MNEMONIC_ADD: &str = "ADD";
+pub const MNEMONIC_SUB: &str = "SUB";
+pub const MNEMONIC_STA: &str = "STA";
+pub const MNEMONIC_LDA: &str = "LDA";
+pub const MNEMONIC_BRA: &str = "BRA";
+pub const MNEMONIC_BRZ: &str = "BRZ";
+pub const MNEMONIC_BRP: &str = "BRP";
+pub const MNEMONIC_INP: &str = "INP";
+pub const MNEMONIC_OUT: &str = "OUT";
+pub const MNEMONIC_HLT: &str = "HLT";
+pub const MNEMONIC_DAT: &str = "DAT";
+
+#[derive(Debug, PartialEq, Eq)]
 pub enum MemoryLocation<'a> {
     Address(u8),
     Label(&'a str),
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum InstructionType<'a> {
     Add(MemoryLocation<'a>),
     Subtract(MemoryLocation<'a>),
@@ -23,19 +35,19 @@ pub enum InstructionType<'a> {
     Data(usize),
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct Label<'a> {
     pub label: &'a str,
     pub comments: Box<[&'a str]>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct Instruction<'a> {
     pub instruction: InstructionType<'a>,
     pub comments: Box<[&'a str]>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum Statement<'a> {
     Labeled {
         label: Label<'a>,
@@ -126,17 +138,19 @@ pub fn parsed_to_ast<'a>(parsed: &mut Pairs<'a, Rule>) -> Vec<Statement<'a>> {
                             };
                             instruction = Some(Instruction {
                                 instruction: match &*instruction_type {
-                                    "ADD" => InstructionType::Add(memory_location),
-                                    "SUB" => InstructionType::Subtract(memory_location),
-                                    "STA" => InstructionType::Store(memory_location),
-                                    "LDA" => InstructionType::Load(memory_location),
-                                    "BRA" => InstructionType::BranchAlways(memory_location),
-                                    "BRZ" => InstructionType::BranchIfZero(memory_location),
-                                    "BRP" => InstructionType::BranchIfPositive(memory_location),
-                                    "INP" => InstructionType::Input,
-                                    "OUT" => InstructionType::Output,
-                                    "HLT" => InstructionType::Halt,
-                                    "DAT" => InstructionType::Data(
+                                    MNEMONIC_ADD => InstructionType::Add(memory_location),
+                                    MNEMONIC_SUB => InstructionType::Subtract(memory_location),
+                                    MNEMONIC_STA => InstructionType::Store(memory_location),
+                                    MNEMONIC_LDA => InstructionType::Load(memory_location),
+                                    MNEMONIC_BRA => InstructionType::BranchAlways(memory_location),
+                                    MNEMONIC_BRZ => InstructionType::BranchIfZero(memory_location),
+                                    MNEMONIC_BRP => {
+                                        InstructionType::BranchIfPositive(memory_location)
+                                    }
+                                    MNEMONIC_INP => InstructionType::Input,
+                                    MNEMONIC_OUT => InstructionType::Output,
+                                    MNEMONIC_HLT => InstructionType::Halt,
+                                    MNEMONIC_DAT => InstructionType::Data(
                                         instruction_memory.parse::<usize>().unwrap_or(0),
                                     ),
                                     _ => panic!(
@@ -166,4 +180,75 @@ pub fn parsed_to_ast<'a>(parsed: &mut Pairs<'a, Rule>) -> Vec<Statement<'a>> {
         }
     }
     ast
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::grammar::pass_program;
+
+    use super::{parsed_to_ast, Instruction, InstructionType, Label, MemoryLocation, Statement};
+
+    #[test]
+    fn test_simple_add() {
+        let mut parsed = pass_program(
+            r#"
+; add two numbers
+start:
+    LDA a
+    ADD b
+    OUT
+a: DAT 2
+b: DAT 4
+"#,
+        )
+        .unwrap();
+
+        let ast_actual = parsed_to_ast(&mut parsed);
+        let ast_expected = vec![
+            Statement::Labeled {
+                label: Label {
+                    label: "start",
+                    comments: Box::new(["add two numbers"]),
+                },
+                instruction: Instruction {
+                    instruction: InstructionType::Load(MemoryLocation::Label("a")),
+                    comments: Box::new([]),
+                },
+            },
+            Statement::UnLabeled {
+                instruction: Instruction {
+                    instruction: InstructionType::Add(MemoryLocation::Label("b")),
+                    comments: Box::new([]),
+                },
+            },
+            Statement::UnLabeled {
+                instruction: Instruction {
+                    instruction: InstructionType::Output,
+                    comments: Box::new([]),
+                },
+            },
+            Statement::Labeled {
+                label: Label {
+                    label: "a",
+                    comments: Box::new([]),
+                },
+                instruction: Instruction {
+                    instruction: InstructionType::Data(2),
+                    comments: Box::new([]),
+                },
+            },
+            Statement::Labeled {
+                label: Label {
+                    label: "b",
+                    comments: Box::new([]),
+                },
+                instruction: Instruction {
+                    instruction: InstructionType::Data(4),
+                    comments: Box::new([]),
+                },
+            },
+        ];
+
+        assert_eq!(ast_expected, ast_actual);
+    }
 }
