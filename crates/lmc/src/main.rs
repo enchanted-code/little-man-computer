@@ -1,15 +1,10 @@
 use std::path::PathBuf;
 
-use assembler::assemble_from_ast;
-use ast::parsed_to_ast;
 use clap::{Parser, Subcommand};
-use grammar::pass_program;
-use runtime::{CommandLine, Runtime};
-
-pub mod assembler;
-pub mod ast;
-pub mod grammar;
-pub mod runtime;
+use lmc_core::assembler::assemble_from_ast;
+use lmc_core::ast::parsed_to_ast;
+use lmc_core::grammar::pass_program;
+use lmc_core::runtime::{CommandLine, Runtime};
 
 #[derive(Subcommand, Debug)]
 enum Command {
