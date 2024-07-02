@@ -19,6 +19,7 @@ mod tests {
     fn test_comment() {
         LMCParser::parse(Rule::comment, ";a comment").unwrap();
         LMCParser::parse(Rule::comment, "; a comment").unwrap();
+        assert!(LMCParser::parse(Rule::comment, "").is_err());
     }
 
     #[test]
@@ -35,6 +36,16 @@ mod tests {
         LMCParser::parse(Rule::memoryLocation, "10").unwrap();
         LMCParser::parse(Rule::memoryLocation, "0").unwrap();
         LMCParser::parse(Rule::memoryLocation, "labelled").unwrap();
+        assert!(LMCParser::parse(Rule::memoryLocation, "").is_err());
+    }
+
+    #[test]
+    fn test_instruction_name() {
+        LMCParser::parse(Rule::instruction, "ADD").unwrap();
+        LMCParser::parse(Rule::instruction, "ADD ").unwrap();
+        LMCParser::parse(Rule::instruction, "add").unwrap();
+        assert!(LMCParser::parse(Rule::instruction, "ADDDD").is_err());
+        assert!(LMCParser::parse(Rule::instruction, "").is_err());
     }
 
     #[test]
