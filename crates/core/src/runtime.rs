@@ -22,6 +22,21 @@ pub struct CommandLine<'a> {
     stdout: std::io::Stdout,
 }
 
+impl CommandLine<'_> {
+    fn write_stdout(&mut self, content: &str) {
+        let mut handle = self.stdout.lock();
+        handle.write_all(content.as_bytes()).unwrap();
+        self.stdout.flush().unwrap();
+    }
+
+    fn read_stdin(&mut self, buf: &mut String) {
+        buf.clear();
+        let mut handle = self.stdin.lock();
+        handle.read_line(buf).unwrap();
+        *buf = buf.strip_suffix("\n").unwrap().trim().to_string();
+    }
+}
+
 impl<'a> Runtime<'a> for CommandLine<'a> {
     fn load_assembled(memory: &'a mut [usize; 100]) -> Self {
         Self {
@@ -63,22 +78,22 @@ impl<'a> Runtime<'a> for CommandLine<'a> {
                 }
             }
             (assembler::OPCODE_INP, 1) => {
-                let mut handle = self.stdout.lock();
-                handle.write_all(format!("<<< ").as_bytes()).unwrap();
-                self.stdout.flush().unwrap();
-                let mut handle = self.stdin.lock();
-                let mut buf = String::new();
-                handle.read_line(&mut buf).unwrap();
-                let buf = buf.strip_suffix("\n").unwrap().trim();
-                let value = buf.parse().unwrap();
-                self.accumulator = value;
+                let mut ok = false;
+                while !ok {
+                    self.write_stdout(&format!("<<< "));
+                    let mut buf = String::new();
+                    self.read_stdin(&mut buf);
+                    if let Ok(value) = buf.parse::<usize>() {
+                        self.accumulator = value.min(999);
+                        ok = true;
+                    } else {
+                        self.write_stdout("not a valid number\n");
+                        ok = false;
+                    }
+                }
             }
             (assembler::OPCODE_OUT, 2) => {
-                let mut handle = self.stdout.lock();
-                handle
-                    .write_all(format!(">>> {}\n", self.accumulator.to_string()).as_bytes())
-                    .unwrap();
-                self.stdout.flush().unwrap();
+                self.write_stdout(&format!(">>> {}\n", self.accumulator.to_string()));
             }
             (assembler::OPCODE_HLT, _) => return true,
             _ => unreachable!(),
